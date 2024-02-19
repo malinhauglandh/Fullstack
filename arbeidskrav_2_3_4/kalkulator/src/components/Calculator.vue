@@ -1,53 +1,114 @@
 <template>
+  <h1 id="header">Calculator</h1>
   <div class="calculator">
-    <div class="display">{{ current || '0' }}</div>
-    <div @click="clear" class="btn operator-top">C</div>
-    <div @click="sign" class="btn operator-top">+/-</div>
-    <div @click="percent" class="btn operator-top">%</div>
-    <div class="btn operator-side">÷</div>
-    <div class="btn">7</div>
-    <div class="btn">8</div>
-    <div class="btn">9</div>
-    <div class="btn operator-side">x</div>
-    <div class="btn">5</div>
-    <div class="btn">6</div>
-    <div class="btn">4</div>
-    <div class="btn operator-side">-</div>
-    <div class="btn">1</div>
-    <div class="btn">2</div>
-    <div class="btn">3</div>
-    <div class="btn operator-side">÷</div>
-    <div class="btn zero">0</div>
-    <div class="btn">.</div>
-    <div class="btn operator-side">=</div>
+    <div id="display" class="display">{{ current || '0' }}</div>
+    <div @click="clear"       class="btn operator-top">C</div>
+    <div @click="sign"        class="btn operator-top">+/-</div>
+    <div @click="percent"     class="btn operator-top">%</div>
+    <div @click="divide"      class="btn operator-side">÷</div>
+    <div @click="append('7')" class="btn">7</div>
+    <div @click="append('8')" class="btn">8</div>
+    <div @click="append('9')" class="btn">9</div>
+    <div @click="multiply"    class="btn operator-side">x</div>
+    <div @click="append('5')" class="btn">5</div>
+    <div @click="append('6')" class="btn">6</div>
+    <div @click="append('4')" class="btn">4</div> 
+    <div @click="subtract"    class="btn operator-side">-</div>
+    <div @click="append('1')" class="btn">1</div>
+    <div @click="append('2')" class="btn">2</div>
+    <div @click="append('3')" class="btn">3</div>
+    <div @click="add"         class = "btn operator-side">+</div>
+    <div @click="append('0')" class="btn zero">0</div>
+    <div @click="dot"         class="btn">.</div>
+    <div @click="equal"       class="btn operator-side">=</div>
+    <div class="calculations">
+      <div v-for="(calculation, index) in calculations" :key="index">
+        {{ calculation }} </div>
+    </div>
   </div>
 </template>
 
+<script setup>
+import { ref } from 'vue';
 
-<script>
-export default {
-  data() {
-    return {
-      current: '600',
-    }
-  },
-  methods: {
-    clear() {
-      this.current = ''
-    },
-    sign() {
-      this.current = this.current.charAt(0) === '-' ? 
-        this.current.slice(1) : `-${this.current}`
-    }, 
-    percent() {
-      this.current = `${parseFloat(this.current) / 100}`
-    },
+const previous = ref(null);
+const current = ref('');
+const operator = ref(null);
+const operatorClicked = ref(false);
+const calculations = ref([]);
+
+const clear = () => {
+    current.value = '';
+};
+const sign = () => {
+current.value = current.value.charAt(0) === '-' ?
+  current.value.slice(1) : `-${current.value}`;
+};
+
+const percent = () => {
+  const percentage = parseFloat(current.value) / 100;
+  current.value = `${percentage}`;
+};
+
+const append = (number) => {
+  if (operatorClicked.value) {
+    current.value = '';
+    operatorClicked.value = false;
+  }
+  current.value = `${current.value}${number}`;
+};
+
+const dot = () => {
+  if (current.value.indexOf('.') === -1) {
+    append('.');
+  }
+};
+
+const setPrevious = () => {
+  previous.value = current.value;
+  operatorClicked.value = true;
+};
+
+const divide = () => {
+  if (current.value === '0') return;
+  operator.value = { func: (a, b) => a / b, symbol: '÷' };
+  setPrevious();
+};
+
+const multiply = () => {
+  operator.value = { func: (a, b) => a * b, symbol: 'x' };
+  setPrevious();
+};
+
+const subtract = () => {
+  operator.value = { func: (a, b) => a - b, symbol: '-' };
+  setPrevious();
+};
+
+const add = () => {
+  operator.value = { func: (a, b) => a + b, symbol: '+' };
+  setPrevious();
+};
+
+const equal = () => {
+  if (!operator.value || !previous.value) return;
+  let result = operator.value.func(parseFloat(previous.value), parseFloat(current.value));
+  if (result === Infinity || isNaN(result)) {
+    current.value = 'Cant divide by zero';
+    previous.value = null;
+    return;
+  } else {
+    const calculation = `${previous.value} ${operator.value.symbol} ${current.value} = ${result}`;
+    current.value = `${result}`;
+    previous.value = null;
+    calculations.value.push(calculation);
   }
 }
 </script>
 
 <style scoped>
 .calculator {
+  padding-top: 5%;
   width: 300px;
   gap: 5px;
   margin: 0 auto;
@@ -58,6 +119,7 @@ export default {
 .display {
   grid-column: 1 / 5;
   border-radius: 10px;
+  border: 0.5px solid white;
   background-color: #DFFDFF ;
   font-size: 30px;
   font-weight: bold;
@@ -70,23 +132,52 @@ export default {
 }
 
 .btn {
-  background-color: #F1F7B5;
+  background-color: #faffbf;
   border-radius: 15px;
+  border: 1px solid #ffff8b;
   cursor: pointer;
   padding: 20px;  
   color: black;
   text-align: center;
   font-weight: bold;
 }
+.btn:hover {
+  background-color: #ffff8b;
+}
 
 .operator-side {
   background-color: #FEC868;
-  border: 0.5px solid #DFFDFF;
+  border: 1px solid #fdb231;
+}
+
+.operator-side:hover {
+  background-color: #fdb231;
 }
 
 .operator-top {
   background-color: #BDB2FF;
-  border: 0.5px solid #DFFDFF;
+  border: 1px solid #a292fe;
+}
+
+.operator-top:hover {
+  background-color: #a292fe;
+}
+.calculations {
+  grid-column: 1 / 5;
+  padding: 20px;
+  border: 1px solid #FAD1FA;
+  background-color: white;
+  text-align: center;
+  color: #9f825a;
+  font-weight: bold;
+  border-radius: 15px;
+}
+
+#header {
+  text-align: center;
+  color: #9f825a;
+  font-size: 50px;
+  margin-bottom: 5px;
 }
 
 </style>
