@@ -30,12 +30,48 @@
 
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
+
+const apiUrl = 'http://localhost:8080/solve';
 
 const previous = ref(null);
 const current = ref('');
 const operator = ref(null);
 const operatorClicked = ref(false);
 const calculations = ref([]);
+
+
+const calculate = async (num1, operator, num2) => {
+  try {
+    const response = await axios.post(apiUrl, {
+      expression: current.value, 
+      num1, 
+      operator: operator === 'x' ? '*' : operator === '÷' ? '/' : operator,
+      num2
+    });
+    console.log('Calculation response', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Calculation error', error);
+    return null;  
+  }
+}
+
+const equal = async () => {
+  if (!operator.value || !previous.value) return;
+  const equation = await calculate(previous.value, operator.value, current.value);
+
+  if (!equation || equation.answer === 'Cant divide by zero') {
+    current.value = 'Cant divide by zero';
+    previous.value = null;
+    return;
+  } else {
+    const calculation = `${previous.value} ${operator.value} ${current.value} = ${equation.answer}`;
+    current.value = `${equation.answer}`;
+    previous.value = null;
+    calculations.value.push(calculation);
+  }
+}
 
 const clear = () => {
     current.value = '';
@@ -71,39 +107,26 @@ const setPrevious = () => {
 
 const divide = () => {
   if (current.value === '0') return;
-  operator.value = { func: (a, b) => a / b, symbol: '÷' };
+  operator.value = '÷';
   setPrevious();
 };
 
 const multiply = () => {
-  operator.value = { func: (a, b) => a * b, symbol: 'x' };
+  operator.value = 'x';
   setPrevious();
+  console.log(operator.value)
 };
 
 const subtract = () => {
-  operator.value = { func: (a, b) => a - b, symbol: '-' };
+  operator.value = '-';
   setPrevious();
 };
 
 const add = () => {
-  operator.value = { func: (a, b) => a + b, symbol: '+' };
+  operator.value = '+';
   setPrevious();
 };
 
-const equal = () => {
-  if (!operator.value || !previous.value) return;
-  let result = operator.value.func(parseFloat(previous.value), parseFloat(current.value));
-  if (result === Infinity || isNaN(result)) {
-    current.value = 'Cant divide by zero';
-    previous.value = null;
-    return;
-  } else {
-    const calculation = `${previous.value} ${operator.value.symbol} ${current.value} = ${result}`;
-    current.value = `${result}`;
-    previous.value = null;
-    calculations.value.push(calculation);
-  }
-}
 </script>
 
 <style scoped>
