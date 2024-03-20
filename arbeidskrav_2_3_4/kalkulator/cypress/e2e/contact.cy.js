@@ -28,6 +28,7 @@ describe('contact form tests', ()=>{
         cy.get('#submit-button').click()
         cy.wait(1000)
         cy.get('#submit-success').should('not.exist')
+        // teit test 
     })
 
     it('submit returns success when server is running',  ()=>{
