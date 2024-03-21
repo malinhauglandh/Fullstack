@@ -37,7 +37,6 @@ public class LoginController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Access denied, wrong credentials...");
         }
-
     }
 
     @PostMapping(value = "/token")
@@ -54,7 +53,7 @@ public class LoginController {
         final Instant now = Instant.now();
         String keyStr = "darwinnunezthegreatestofalltime";
         final Algorithm hmac512 = Algorithm.HMAC512(keyStr);;
-        final JWTVerifier verifier = JWT.require(hmac512).build();
+        JWT.require(hmac512).build();
         return JWT.create()
                 .withSubject(userId)
                 .withIssuedAt(now)

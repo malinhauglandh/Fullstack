@@ -26,7 +26,6 @@ import { ref, watch } from 'vue'
 import axios from 'axios'
 import { router } from '../router/index.js'
 import { useStore } from '../store/store.js'
-import { mapActions, mapState } from 'pinia'
 
 const username = ref("")
 const password = ref("")
@@ -110,7 +109,7 @@ function refreshToken(){
   }, 1000 * 60 * 5)
 }
 
-watch(() => store.jwtToken, (newToken) => {
+watch(() => store.jwtToken, () => {
   if(store.loggedInUser.value !== null){
     refreshToken()
   }
